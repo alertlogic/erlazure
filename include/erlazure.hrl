@@ -62,6 +62,10 @@
 -define(account_key, "").
 -endif.
 
+-record(azure_config,
+    {auth_token="" :: string()}
+).
+
 %% Types
 -type xmlElement() :: #xmlElement{}.
 -export_type([xmlElement/0]).
@@ -242,3 +246,4 @@
                        metadata = [] :: metadata() }).
 -type cloud_table() :: #cloud_table{}.
 -export_type([cloud_table/0]).
+
