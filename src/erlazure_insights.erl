@@ -36,7 +36,9 @@ get_events(SubscriptionId, Filter, Select, Config=#azure_config{}, NextToken) ->
                 {ok, _Values, _NextToken} = Response ->
                     Response;
                 {error, _Reason} = ErrorCase ->
-                    ErrorCase
+                    ErrorCase;
+                {azure_error, _Reason} = AzureErrorCase ->
+                    AzureErrorCase
             end;
         _ -> request_api(binary_to_list(NextToken), Config)
     end.
@@ -64,7 +66,7 @@ request_api(Url, Config) ->
             Values = proplists:get_value(<<"value">>, DecodedBody, undefined),
             {ok, Values, NextLink};
         {ok, {{_Version, Code, Phrase}, _Headers, Body}} ->
-            {error, {Code, {Phrase, Body}}};
+            {azure_error, {Code, {Phrase, Body}}};
         {error, _Reason} = ErrorCase ->
             ErrorCase
     end.
