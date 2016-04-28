@@ -57,7 +57,7 @@ follow_token(Url, DataAcc, Config) ->
     end.
 
 request_api(Url, Config) ->
-    Response = httpc:request(get, {Url, construct_headers(Config)}, [], []),
+    Response = httpc:request(get, {Url, construct_headers(Config)}, [{timeout, Config#azure_config.http_timeout}], []),
 
     case Response of
         {ok, {{_Version, 200, _Phrase}, _Headers, Body}} ->
