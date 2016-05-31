@@ -21,7 +21,7 @@
 -spec get_events_all(string(), string(), string(), #azure_config{}) ->
     {ok, list()} | {{error, term()}, {accumulated, list()}}.
 get_events_all(SubscriptionId, Filter, Select, Config=#azure_config{}) ->
-    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, []),
+    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, undefined),
     case NextToken of
         undefined -> {ok, Values};
         _ -> follow_token(binary_to_list(NextToken), Values, Config)
