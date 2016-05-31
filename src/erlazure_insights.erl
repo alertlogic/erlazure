@@ -49,9 +49,9 @@ follow_token(Url, DataAcc, Config) ->
     Result = request_api(Url, Config),
     case Result of
         {ok, Data, undefined} ->
-            {ok, [DataAcc | Data]};
+            {ok, [Data | DataAcc]};
         {ok, Data, NextToken} ->
-            follow_token(binary_to_list(NextToken), [DataAcc | Data], Config);
+            follow_token(binary_to_list(NextToken), [Data | DataAcc], Config);
         {error, _Reason} = ErrorCase ->
             {ErrorCase, {accumulated, DataAcc}}
     end.
