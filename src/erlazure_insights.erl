@@ -49,7 +49,7 @@ follow_token(Url, DataAcc, Config) ->
     Result = request_api(Url, Config),
     case Result of
         {ok, Data, undefined} ->
-            {ok, [Data | DataAcc]};
+            {ok, lists:flatten([Data | DataAcc])};
         {ok, Data, NextToken} ->
             follow_token(binary_to_list(NextToken), [Data | DataAcc], Config);
         {error, _Reason} = ErrorCase ->
