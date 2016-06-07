@@ -21,7 +21,7 @@
 -spec get_events_all(string(), string(), string(), #azure_config{}) ->
     {ok, list()} | {{error, term()}, {accumulated, list()}}.
 get_events_all(SubscriptionId, Filter, Select, Config=#azure_config{}) ->
-    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, []),
+    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, undefined),
     case NextToken of
         undefined -> {ok, Values};
         _ -> follow_token(binary_to_list(NextToken), Values, Config)
@@ -49,9 +49,9 @@ follow_token(Url, DataAcc, Config) ->
     Result = request_api(Url, Config),
     case Result of
         {ok, Data, undefined} ->
-            {ok, Data};
+            {ok, lists:flatten([Data | DataAcc])};
         {ok, Data, NextToken} ->
-            follow_token(binary_to_list(NextToken), [DataAcc | Data], Config);
+            follow_token(binary_to_list(NextToken), [Data | DataAcc], Config);
         {error, _Reason} = ErrorCase ->
             {ErrorCase, {accumulated, DataAcc}}
     end.
