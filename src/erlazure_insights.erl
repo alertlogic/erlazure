@@ -21,7 +21,7 @@
 -spec get_events_all(string(), string(), string(), #azure_config{}) ->
     {ok, list()} | {{error, term()}, {accumulated, list()}}.
 get_events_all(SubscriptionId, Filter, Select, Config=#azure_config{}) ->
-    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, []),
+    {ok, Values, NextToken} = get_events(SubscriptionId, Filter, Select, Config, undefined),
     case NextToken of
         undefined -> {ok, Values};
         _ -> follow_token(binary_to_list(NextToken), Values, Config)
@@ -36,7 +36,9 @@ get_events(SubscriptionId, Filter, Select, Config=#azure_config{}, NextToken) ->
                 {ok, _Values, _NextToken} = Response ->
                     Response;
                 {error, _Reason} = ErrorCase ->
-                    ErrorCase
+                    ErrorCase;
+                {azure_error, _Reason} = AzureErrorCase ->
+                    AzureErrorCase
             end;
         _ -> request_api(binary_to_list(NextToken), Config)
     end.
@@ -47,15 +49,15 @@ follow_token(Url, DataAcc, Config) ->
     Result = request_api(Url, Config),
     case Result of
         {ok, Data, undefined} ->
-            {ok, Data};
+            {ok, lists:flatten([Data | DataAcc])};
         {ok, Data, NextToken} ->
-            follow_token(binary_to_list(NextToken), [DataAcc | Data], Config);
+            follow_token(binary_to_list(NextToken), [Data | DataAcc], Config);
         {error, _Reason} = ErrorCase ->
             {ErrorCase, {accumulated, DataAcc}}
     end.
 
 request_api(Url, Config) ->
-    Response = httpc:request(get, {Url, construct_headers(Config)}, [], []),
+    Response = httpc:request(get, {Url, construct_headers(Config)}, [{timeout, Config#azure_config.http_timeout}], []),
 
     case Response of
         {ok, {{_Version, 200, _Phrase}, _Headers, Body}} ->
@@ -64,7 +66,7 @@ request_api(Url, Config) ->
             Values = proplists:get_value(<<"value">>, DecodedBody, undefined),
             {ok, Values, NextLink};
         {ok, {{_Version, Code, Phrase}, _Headers, Body}} ->
-            {error, {Code, {Phrase, Body}}};
+            {azure_error, {Code, {Phrase, Body}}};
         {error, _Reason} = ErrorCase ->
             ErrorCase
     end.

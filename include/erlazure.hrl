@@ -63,7 +63,7 @@
 -endif.
 
 -record(azure_config,
-    {auth_token="" :: string()}
+    {auth_token="" :: string(), http_timeout=5000}
 ).
 
 %% Types
